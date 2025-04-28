@@ -2,9 +2,9 @@
   "name": "obsidian-critterdb",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.mjs",
   "scripts": {
-    "start": "node index.js -i=/Users/goncalostratfordandrade/Documents/DnD-40k/Monsters-Raw",
+    "start": "node index.mjs -i=/Users/goncalostratfordandrade/Documents/DnD-40k/Monsters-Raw",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
