@@ -1,5 +1,7 @@
 import { readFileSync } from "fs";
 
+let spells; // placeholder for spells. These come from actions and will need to be extracted. If this var is populated, it will be processed and added to the bottom of the block.
+
 const config = JSON.parse(
   readFileSync("./config.json", "utf8")
 ).fantasystatblock;
@@ -68,11 +70,31 @@ const skillsavesBuilder = (input) => {
   return output.join("");
 };
 
+const buildSpellcasting = (input) => {
+  const output = [];
+  const spellList = input.split("\n\n")[1].split("\n"); // spell list
+
+  spellList.map((level) => {
+    output.push(
+      `- ${level.split(": ")[0]}: ${level
+        .split(": ")[1]
+        .replace(/<[^>]*>/gm, "")}`
+    );
+  });
+
+  return output.join("\n");
+};
+
 const actionsBuilder = (input) => {
   const output = [""];
   input.forEach((action) => {
-    output.push(`- name: "${action.name}"`);
-    output.push(`  desc: "${action.entries.join("\n")}"`);
+    // check for spellcasting
+    if (action.name.includes("Spellcasting")) {
+      spells = buildSpellcasting(action.entries.join("\n"));
+    } else {
+      output.push(`- name: "${action.name}"`);
+      output.push(`  desc: "${action.entries.join("\n")}"`);
+    }
   });
 
   return output.join("\n");
@@ -81,14 +103,22 @@ const actionsBuilder = (input) => {
 const critterDBToFantasyStatblock = (input) => {
   let output = [`\`\`\`statblock`];
 
+  if (input.fluff.entries.length)
+    output.unshift(input.fluff.entries.join("\n"));
+
   // add config
   if (config) {
     Object.keys(config).forEach((k) => {
       output.push(`${k}: ${config[k]}`);
     });
   }
-  output.push(`layout: Basic 5e Layout`);
-  if (input.fluff.images.length)
+
+  if (
+    input.fluff.images.length &&
+    !input.fluff.images[0].href.url.includes(
+      "https://encrypted-tbn0.gstatic.com/images?q=" // This is the placeholder critterDB uses, we don't want it
+    )
+  )
     output.push(`image: "${input.fluff.images[0].href.url}"`);
   if (input.name) output.push(`name: "${capitalize(input.name)}"`);
   if (input.size) output.push(`size: "${sizeDictionary(input.size)}"`);
@@ -97,6 +127,7 @@ const critterDBToFantasyStatblock = (input) => {
   if (input.alignment)
     output.push(`alignment: "${alignmentDictionary(input.alignment)}"`);
   output.push(`ac: ${input.ac[0].ac}`);
+  output.push(`cr: ${input.cr}`);
   output.push(`hp: ${input.hp.average}`);
   output.push(`hit_dice: ${input.hp.formula.split(" ")[0]}`);
   if (input.speed) output.push(`speed: "${input.speed.walk} ft."`);
@@ -112,9 +143,10 @@ const critterDBToFantasyStatblock = (input) => {
     output.push(`languages: "${input.languages.join(`, `)}"`);
   if (input.trait) output.push(`traits: ${actionsBuilder(input.trait)}`);
   if (input.action) output.push(`actions: ${actionsBuilder(input.action)}`);
-
+  if (spells) output.push(`spells:\n${spells}`);
   output.push("```");
 
+  spells = null; // resetting spells
   return output.join(`\n`);
 };
 
