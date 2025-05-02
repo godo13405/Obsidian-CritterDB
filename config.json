@@ -1,7 +1,6 @@
 {
   "fantasystatblock": {
     "dice": true,
-    "statblock": true,
     "columns": 2,
     "forcecolumns": true,
     "layout": "Basic 5e Layout Mine"

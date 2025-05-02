@@ -101,10 +101,12 @@ const actionsBuilder = (input) => {
 };
 
 const critterDBToFantasyStatblock = (input) => {
-  let output = [`\`\`\`statblock`];
+  let output = [`---`, `statblock: inline`, `---`];
 
   if (input.fluff.entries.length)
-    output.unshift(input.fluff.entries.join("\n"));
+    output.push(`\n\n${input.fluff.entries.join("\n")}\n\n`);
+
+  output.push(`\`\`\`statblock`);
 
   // add config
   if (config) {
@@ -124,6 +126,7 @@ const critterDBToFantasyStatblock = (input) => {
   if (input.size) output.push(`size: "${sizeDictionary(input.size)}"`);
   if (input.type) output.push(`type: "${capitalize(input.type)}"`);
   if (input.subtype) output.push(`subtype: "${capitalize(input.subtype)}"`);
+  if (input.source) output.push(`source: "${capitalize(input.source)}"`);
   if (input.alignment)
     output.push(`alignment: "${alignmentDictionary(input.alignment)}"`);
   output.push(`ac: ${input.ac[0].ac}`);
